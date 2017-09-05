@@ -1,0 +1,260 @@
+
+<html>
+<head>
+<style>
+progress:after 
+{  
+     display: block; 
+     content: attr(value)'%';  
+     width:100%;  
+     text-align:center;
+     vertical-align: middle;  
+     position: relative;
+	 top:-100%; 
+} 
+
+/* progress  */
+/* { */
+/*   -webkit-appearance: none; */
+/* } */
+
+.grayBar
+{
+  background-color: gray;
+}
+
+.greenBar
+{
+  background-color: green;
+}
+
+.redBar
+{
+  background-color: red;
+}
+
+
+
+</style>
+
+
+<script>
+	var initdata;
+	var initdata_json;
+	var initdata_jsonButtons;
+	var initdata_jsonBars;
+	var initdata_jsonLimit;
+	var selectedProgBarId;
+	
+	var currArrData = [];
+
+	function httpGetAsync()
+	{
+	    var xmlHttp = new XMLHttpRequest();
+	    xmlHttp.onreadystatechange = function() 
+	    { 
+	        if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
+	        	getInitData(xmlHttp.responseText);
+	    }
+	    xmlHttp.open("GET", "http://pb-api.herokuapp.com/bars", false); // true for asynchronous 
+	    xmlHttp.send(null);
+	}
+	
+	function getInitData(msg)
+	{
+		initdata = msg;
+		console.log("initdata: " + initdata);
+		
+		initdata_json 			= JSON.parse(initdata);
+		initdata_jsonButtons	= initdata_json.buttons;
+		initdata_jsonBars		= initdata_json.bars;
+		initdata_jsonLimit		= initdata_json.limit;
+		
+		console.log("buttons: " 	+ initdata_jsonButtons + 
+			  		"\r\nbars: " 	+ initdata_jsonBars +
+			  		"\r\nlimit: " 	+ initdata_jsonLimit);
+	}
+
+	function getRandomInt(min, max) 
+	{
+		return Math.floor(Math.random() * (max - min + 1)) + min;
+	}
+
+	function loadProgressBarSelect(arrBar) 
+	{
+		var noOfProgressBar = arrBar.length;
+		var optionTxt		= '';
+		var optionBar		= '';
+		var optHiddenActVal	= '';
+	
+		console.log("No. of Progress bars: " + noOfProgressBar);
+		
+		//generate options
+		for (var i = 0; i < noOfProgressBar; i++) {
+			optionTxt += "<option ";
+            optionTxt += " value='" 	+ arrBar[i] 	+ "' ";
+            optionTxt += " id='" 		+ "progBarSel" 	+ i + "' ";
+            optionTxt += ">";
+			optionTxt += "#progress" 	+ (i+1);
+			optionTxt += "</option>";
+			
+			optHiddenActVal += "<input type='hidden' ";
+			optHiddenActVal += " id='"  	+ "hidAbsVal" 	+ i + "' ";
+			optHiddenActVal += " value='" 	+ arrBar[i]	+ "' ";
+			optHiddenActVal += "</input>";
+			
+			optionBar += "<p>";
+			optionBar += "<progress ";
+			optionBar += " id='" 		+ "progBar" 	+ i + "' ";
+			optionBar += " max='100'";
+			optionBar += " min='0' ";
+			optionBar += " value='" 	+ Math.floor(arrBar[i]/initdata_jsonLimit * 100) 	+ "' ";
+			optionBar += " class='greenBar' ";
+			optionBar += ">";
+// 			optionBar += " <span style='position: relative; top: -100%; display:block; z:1000; color:black;'> ";
+// 			optionBar += "TEST";
+// 			optionBar += "</span>";
+			optionBar += "</progress>";
+			optionBar += "</p>";
+		}
+
+		document.getElementById("progBarSel").innerHTML = optionTxt;
+		document.getElementById("progBarCont").innerHTML = optionBar;
+		document.getElementById("hidActualVal").innerHTML = optHiddenActVal;
+	}
+
+	function loadButtons(arrBtn)
+	{
+		var noOfButtons = arrBtn.length;
+		var buttonsHTML = "";
+		var amt			= 0;
+		
+		console.log("No. of Buttons: " + noOfButtons);
+
+		for (var i = 0; i < noOfButtons; i++) 
+		{
+			//generate buttons DOM
+			buttonsHTML += "<button ";
+			buttonsHTML += " value='" + arrBtn[i] + "' ";
+			buttonsHTML += " id='btn" + i + "' ";
+			buttonsHTML += " onclick='barButton(this);' ";
+			buttonsHTML += ">";
+			
+			if (arrBtn[i] >= 0)
+			{
+            	buttonsHTML += "+" + arrBtn[i];
+			}
+			else
+			{
+				buttonsHTML += arrBtn[i];	
+			}
+            buttonsHTML += "</button>";
+		}
+		
+		document.getElementById("btnList").innerHTML = buttonsHTML;
+	}
+	
+	function barButton(e)
+	{
+		var elementId			= document.getElementById("progBarSel").selectedIndex;
+		var selProgBarElement 	= document.getElementById('progBar' + elementId);
+		var selHiddenElement	= document.getElementById('hidAbsVal' + elementId);
+		var valToIncOrDec		= parseInt(e.value);
+		
+		console.log("valToIncOrDec: " + valToIncOrDec);
+		
+		var oriVal  = parseInt(selHiddenElement.value);
+		var newVal	= oriVal + valToIncOrDec;
+		
+		var bIsPos	= false;
+		
+		if (newVal >= oriVal)
+		{
+			bIsPos = true;
+		}
+		else
+		{
+			bIsPos = false;
+		}
+		console.log("bIsPos: " + bIsPos);
+		
+		var animate;
+		
+		if (bIsPos)
+		{
+			animate = moveBarPos(selProgBarElement, (newVal/initdata_jsonLimit*100));
+			if (newVal > initdata_jsonLimit)
+			{
+				selProgBarElement.className = "redBar";
+			}
+			else
+			{
+				selProgBarElement.className = "greenBar";
+			}
+		}
+		else
+		{
+			animate = moveBarNeg(selProgBarElement, (newVal/initdata_jsonLimit*100));
+			if (newVal <= 0)
+			{
+				newVal = 0;	
+			}
+			
+			if (newVal < initdata_jsonLimit)
+			{
+				selProgBarElement.className = "greenBar";
+			}
+		}
+		
+		selHiddenElement.value = newVal;
+	}
+	
+	function moveBarPos(progBarEle, resval)
+	{
+		setTimeout(function()
+				   {
+				   		if (progBarEle.value < resval)
+						{
+							if (progBarEle.value < 100)
+							{
+								progBarEle.value += 1;
+								moveBarPos(progBarEle, resval);
+							}
+						}
+				   },
+				   20);
+	}
+	
+	function moveBarNeg(progBarEle, resval)
+	{
+		setTimeout(function()
+				   {
+						if (progBarEle.value >= resval)
+						{
+							progBarEle.value -= 1;	
+						
+							if (progBarEle.value > 0)
+							{
+								moveBarNeg(progBarEle, resval);
+							}
+						}
+				   }, 
+				  20);
+	}
+	
+	window.onload = function()
+					{
+						httpGetAsync();				
+						loadButtons(initdata_jsonButtons);
+						loadProgressBarSelect(initdata_jsonBars);
+					}
+</script>
+</head>
+<body>
+	<div id="progBarCont"></div>
+	<select id="progBarSel"></select>
+	<div id="btnList"></div>
+	<div id="hidActualVal"></div>
+</body>
+
+</html>

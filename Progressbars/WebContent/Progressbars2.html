@@ -1,0 +1,117 @@
+
+<html>
+<head>
+<style>
+.progcont {
+	width: 100%;
+	background-color: grey;
+}
+
+.progbar {
+	width: 1%;
+	height: 30px;
+	background-color: green;
+}
+</style>
+<script>
+	function move() {
+		var elem = document.getElementById("progBar1");
+		var width = 1;
+		var id = setInterval(frame, 10);
+		function frame() {
+			if (width >= 100) {
+				clearInterval(id);
+			} else {
+				width++;
+				elem.style.width = width + '%';
+			}
+		}
+	}
+
+	function getRandomInt(min, max) {
+		return Math.floor(Math.random() * (max - min + 1)) + min;
+	}
+
+	function loadProgressBarSelect() {
+		var noOfProgressBar = getRandomInt(2, 5);
+		var optionTxt = "";
+		var optionBar = "";
+
+		console.log("No. of Progress bars: " + noOfProgressBar);
+		//generate options
+		for (var i = 1; i <= noOfProgressBar; i++) {
+			optionTxt += "<option ";
+            optionTxt += " value='" + i + "' ";
+            optionTxt += " id='" + "progBarSel" + i + "' ";
+            optionTxt += ">";
+			optionTxt += "#progress" + i;
+			optionTxt += "</option>";
+			
+			optionBar += "<p>";
+			optionBar += "<div ";
+			optionBar += " class='progbar' ";
+			optionBar += " id='" + "progBar" + i + "' ";
+			optionBar += ">";
+			optionBar += "</div>";
+			optionBar += "</p>"
+		}
+
+		document.getElementById("progBarSel").innerHTML = optionTxt;
+		document.getElementById("progBarCont").innerHTML = optionBar;
+	}
+
+	function loadButtons()
+	{
+		var noOfButtons = getRandomInt(4, 6);
+		var buttonsHTML = "";
+		var amt			= 0;
+		
+		console.log("No. of Buttons: " + noOfButtons);
+
+		for (var i = 1; i <= noOfButtons; i++) 
+		{
+			//generate random amounts
+			amt = getRandomInt(-100, 100);
+			
+			//generate buttons DOM
+			buttonsHTML += "<button ";
+			buttonsHTML += " value='" + amt + "' ";
+			
+			if (amt < 0)
+			{
+				buttonsHTML += " id='btnMinus" + ("" + amt).substring(1, '' + amt.length) + "' ";
+			}
+			else
+			{
+				buttonsHTML += " id='btnPlus" + amt + "' ";		
+			}
+			
+			buttonsHTML += ">";
+            buttonsHTML += "" + amt;
+            buttonsHTML += "</button>";
+            
+		}
+		
+		document.getElementById("btnList").innerHTML = buttonsHTML;
+	}
+
+	window.onload = function()
+					{
+						loadButtons();
+						loadProgressBarSelect();
+					}
+</script>
+</head>
+<body>
+	<div id="progBarCont"></div>
+	<select id="progBarSel"></select>
+	<div id="btnList"></div>
+</body>
+
+<script>
+var selectedProgBarId = document.getElementById("progBarSel").options[document.getElementById("progBarSel").selectedIndex];
+
+console.log("Selected Prog Bar Value: progBar" + selectedProgBarId);
+</script>
+
+</html>
