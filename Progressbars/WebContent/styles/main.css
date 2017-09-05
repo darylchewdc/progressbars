@@ -1,0 +1,24 @@
+.progBar
+{
+	display:block;
+	width:100%;
+	background-color:gray;
+	height:20px;
+	overflow:hidden;
+}
+.progVal
+{
+	position:relative;
+	background-color:green;
+	height:18px;
+	top:1px;
+}
+.textInProgVal
+{
+	display:block;
+	position:relative;
+	text-align:center;
+	vertical-align:middle;
+	color:black;
+	top: -80%;
+}
